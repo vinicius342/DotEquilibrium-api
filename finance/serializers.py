@@ -1,6 +1,18 @@
 from rest_framework import serializers
 
-from .models import Debt, Expense, Income
+from .models import Category, Debt, Expense, Income, Objective
+
+
+class ObjectiveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Objective
+        fields = '__all__'
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
 
 
 class IncomeSerializer(serializers.ModelSerializer):
