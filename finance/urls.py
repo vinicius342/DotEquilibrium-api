@@ -21,12 +21,12 @@ urlpatterns = [
     # Objective URLs
     path('objectives/', views.ObjectiveListCreateView.as_view(),
          name='objective-list-create'),
-    path('objectives/<int:pk>/', views.ObjectiveDetailView.as_view(),
+    path('objectives/<slug:slug>/', views.ObjectiveDetailView.as_view(),
          name='objective-detail'),
 
     # Category URLs
     path('categories/', views.CategoryListCreateView.as_view(),
          name='category-list-create'),
-    path('categories/<int:pk>/', views.CategoryDetailView.as_view(),
+    path('categories/<slug:slug>/', views.CategoryDetailView.as_view(),
          name='category-detail'),
 ]

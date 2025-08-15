@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.utils.text import slugify
 
 
 class Category(models.Model):
@@ -8,7 +9,13 @@ class Category(models.Model):
         verbose_name_plural = "Categories"
 
     name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
     description = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -54,6 +61,7 @@ class Debt(models.Model):
 
 class Objective(models.Model):
     title = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
     description = models.TextField(blank=True)
     target_value = models.DecimalField(max_digits=12, decimal_places=2)
     current_value = models.DecimalField(
@@ -61,6 +69,11 @@ class Objective(models.Model):
     deadline = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     achieved = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} - {self.target_value}"

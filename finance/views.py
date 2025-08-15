@@ -15,6 +15,7 @@ class ObjectiveListCreateView(generics.ListCreateAPIView):
 class ObjectiveDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Objective.objects.all()
     serializer_class = ObjectiveSerializer
+    lookup_field = 'slug'
 
 
 # Category Views
@@ -26,6 +27,7 @@ class CategoryListCreateView(generics.ListCreateAPIView):
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
 
 
 class IncomeListCreateView(generics.ListCreateAPIView):
