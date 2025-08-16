@@ -1,35 +1,20 @@
-from rest_framework import generics
+from rest_framework import viewsets
 
 from .models import AdvancePayment, Employee, Payroll
 from .serializers import (AdvancePaymentSerializer, EmployeeSerializer,
                           PayrollSerializer)
 
 
-class EmployeeListCreateView(generics.ListCreateAPIView):
+class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
 
 
-class EmployeeDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-
-
-class PayrollListCreateView(generics.ListCreateAPIView):
+class PayrollViewSet(viewsets.ModelViewSet):
     queryset = Payroll.objects.all()
     serializer_class = PayrollSerializer
 
 
-class PayrollDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Payroll.objects.all()
-    serializer_class = PayrollSerializer
-
-
-class AdvancePaymentListCreateView(generics.ListCreateAPIView):
-    queryset = AdvancePayment.objects.all()
-    serializer_class = AdvancePaymentSerializer
-
-
-class AdvancePaymentDetailView(generics.RetrieveUpdateDestroyAPIView):
+class AdvancePaymentViewSet(viewsets.ModelViewSet):
     queryset = AdvancePayment.objects.all()
     serializer_class = AdvancePaymentSerializer

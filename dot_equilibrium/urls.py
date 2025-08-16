@@ -18,7 +18,8 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('api/', include('finance.urls')),  # Include the finance app URLs
+    # Include the finance app URLs
+    path('api/finance/', include('finance.urls')),
     # Include the payroll app URLs
     path('api/payroll/', include('payroll.urls')),
     # Include the investment app URLs
