@@ -25,9 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if config(
+    'ENVIRONMENT', default='development') == 'development' else False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -45,6 +47,10 @@ INSTALLED_APPS = [
     'investment',
     'rest_framework',
     'rest_framework.authtoken',
+    'dj_rest_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'dot_equilibrium.urls'
@@ -152,3 +159,24 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     # outros domínios do frontend
 ]
+
+# Email and Authentication Settings
+
+if config('ENVIRONMENT', default='development') == 'production':
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.seuprovedor.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='seu_usuario')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='sua_senha')
+    EMAIL_USE_TLS = True
+    DEFAULT_FROM_EMAIL = 'noreply@seuprojeto.com'
+    ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+    ACCOUNT_LOGIN_METHODS = {'email'}
+    ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@seuprojeto.com'
+    ACCOUNT_EMAIL_VERIFICATION = 'none'
+    ACCOUNT_LOGIN_METHODS = {'username'}
+    ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*']

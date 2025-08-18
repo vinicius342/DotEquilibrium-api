@@ -19,9 +19,16 @@ from django.urls import include, path
 from rest_framework.authtoken import views
 
 urlpatterns = [
+    # Autenticação e cadastro
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api-token-auth/', views.obtain_auth_token),
+
+    # Apps principais
     path('api/finance/', include('finance.urls')),
     path('api/payroll/', include('payroll.urls')),
     path('api/investment/', include('investment.urls')),
+
+    # Admin
     path('admin/', admin.site.urls),
 ]

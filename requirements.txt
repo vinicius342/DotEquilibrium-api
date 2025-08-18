@@ -1,6 +1,7 @@
 asgiref==3.9.1
 coverage==7.10.3
 Django==5.2.5
+django-allauth==65.11.0
 django-cors-headers==4.7.0
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
