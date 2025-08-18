@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.test import APIClient
 
@@ -12,7 +13,11 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def api_client():
-    return APIClient()
+    user = get_user_model().objects.create_user(
+        username='testuser', password='testpass')
+    client = APIClient()
+    client.force_authenticate(user=user)
+    return client
 
 
 def test_employee_crud_and_error(api_client):

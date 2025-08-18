@@ -16,13 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.authtoken import views
 
 urlpatterns = [
-    # Include the finance app URLs
+    path('api-token-auth/', views.obtain_auth_token),
     path('api/finance/', include('finance.urls')),
-    # Include the payroll app URLs
     path('api/payroll/', include('payroll.urls')),
-    # Include the investment app URLs
     path('api/investment/', include('investment.urls')),
     path('admin/', admin.site.urls),
 ]
