@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
     'finance',
     'payroll',
     'investment',
@@ -99,6 +100,8 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -152,6 +155,13 @@ REST_FRAMEWORK = {
     ],
 }
 
+REST_AUTH = {
+    'LOGIN_SERIALIZER': 'accounts.serializers.CustomLoginSerializer',
+    'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
+    'USE_JWT': False,
+    'SESSION_LOGIN': True,
+}
+
 # CORS Headers Configuration
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -171,13 +181,14 @@ if config('ENVIRONMENT', default='development') == 'production':
     EMAIL_USE_TLS = True
     DEFAULT_FROM_EMAIL = config(
         'DEFAULT_FROM_EMAIL', default='noreply@seuprojeto.com')
-    ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-    ACCOUNT_LOGIN_METHODS = {'email'}
-    ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-
+    ACCOUNT_EMAIL_VERIFICATION = 'none'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'noreply@seuprojeto.com'
     ACCOUNT_EMAIL_VERIFICATION = 'none'
-    ACCOUNT_LOGIN_METHODS = {'username'}
-    ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*']
+
+# Configuração global para login e signup
+ACCOUNT_LOGIN_METHOD = 'email'
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
