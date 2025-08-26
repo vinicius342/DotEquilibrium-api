@@ -122,9 +122,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
@@ -169,7 +169,8 @@ if config('ENVIRONMENT', default='development') == 'production':
     EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='seu_usuario')
     EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='sua_senha')
     EMAIL_USE_TLS = True
-    DEFAULT_FROM_EMAIL = 'noreply@seuprojeto.com'
+    DEFAULT_FROM_EMAIL = config(
+        'DEFAULT_FROM_EMAIL', default='noreply@seuprojeto.com')
     ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
     ACCOUNT_LOGIN_METHODS = {'email'}
     ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
