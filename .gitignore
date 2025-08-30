@@ -144,3 +144,6 @@ Thumbs.db
 # Secret files
 secrets.json
 .secrets/
+
+# Frontend build/output
+dotequilibrium-frontend/

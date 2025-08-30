@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 
@@ -22,6 +23,8 @@ class Category(models.Model):
 
 
 class Income(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=255)
@@ -34,6 +37,8 @@ class Income(models.Model):
 
 
 class Expense(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=255)
@@ -46,6 +51,8 @@ class Expense(models.Model):
 
 
 class Debt(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=255)
@@ -59,7 +66,44 @@ class Debt(models.Model):
         return f"{self.name} - {self.value}"
 
 
+class RecurringBill(models.Model):
+    FREQUENCY_CHOICES = [
+        ('monthly', 'Mensal'),
+        ('weekly', 'Semanal'),
+        ('yearly', 'Anual'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255, blank=True)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    due_day = models.IntegerField(help_text="Dia do vencimento (1-31)")
+    frequency = models.CharField(
+        max_length=10, choices=FREQUENCY_CHOICES, default='monthly')
+    category = models.ForeignKey(
+        'Category', on_delete=models.SET_NULL, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Conta Recorrente"
+        verbose_name_plural = "Contas Recorrentes"
+
+    def __str__(self):
+        return f"{self.name} - R$ {self.value} (dia {self.due_day})"
+
+
 class Objective(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
     description = models.TextField(blank=True)
