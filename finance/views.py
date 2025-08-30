@@ -1,10 +1,14 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from .models import Category, Debt, Expense, Income, Objective, RecurringBill
+from .models import (Category, Debt, Expense, Income, Objective, RecurringBill,
+                     RecurringBillPayment)
 from .serializers import (CategorySerializer, DebtSerializer,
                           ExpenseSerializer, IncomeSerializer,
-                          ObjectiveSerializer, RecurringBillSerializer)
+                          ObjectiveSerializer, RecurringBillPaymentSerializer,
+                          RecurringBillSerializer)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -73,3 +77,79 @@ class RecurringBillViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def mark_paid(self, request, pk=None):
+        """
+        Marca uma conta recorrente como paga para um período específico
+        """
+        bill = self.get_object()
+        year = request.data.get('year')
+        month = request.data.get('month')
+        amount = request.data.get('amount')
+        notes = request.data.get('notes', '')
+
+        if not year or not month:
+            return Response(
+                {'error': 'Year and month are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            payment = bill.mark_paid_for_period(
+                int(year), int(month), amount, notes
+            )
+            serializer = RecurringBillPaymentSerializer(payment)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=['post'])
+    def mark_pending(self, request, pk=None):
+        """
+        Marca uma conta recorrente como pendente para um período específico
+        """
+        bill = self.get_object()
+        year = request.data.get('year')
+        month = request.data.get('month')
+
+        if not year or not month:
+            return Response(
+                {'error': 'Year and month are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            payment = bill.mark_pending_for_period(int(year), int(month))
+            if payment:
+                serializer = RecurringBillPaymentSerializer(payment)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    {'message': 'No payment record found for this period'},
+                    status=status.HTTP_200_OK
+                )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """
+        Desativa uma conta recorrente a partir da data atual
+        """
+        bill = self.get_object()
+        try:
+            bill.deactivate()
+            serializer = self.get_serializer(bill)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

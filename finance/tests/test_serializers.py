@@ -3,13 +3,24 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from django.contrib.auth import get_user_model
 
 from finance.models import Category, Objective
 from finance.serializers import (CategorySerializer, DebtSerializer,
                                  ExpenseSerializer, IncomeSerializer,
                                  ObjectiveSerializer)
 
+User = get_user_model()
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def user():
+    return User.objects.create_user(
+        username='testuser',
+        email='test@example.com',
+        password='testpass123'
+    )
 
 
 def test_category_serializer_create():
@@ -35,10 +46,7 @@ def test_category_serializer_to_representation():
     assert "slug" in data
 
 
-def test_income_serializer_create():
-    """
-    Deve criar um registro de receita (Income) válido.
-    """
+def test_income_serializer_create(user):
     category = Category.objects.create(name="Salário")
     data = {
         "title": "Recebimento",
@@ -49,15 +57,12 @@ def test_income_serializer_create():
     }
     serializer = IncomeSerializer(data=data)
     assert serializer.is_valid(), serializer.errors
-    income = serializer.save()
+    income = serializer.save(user=user)
     assert income.title == "Recebimento"
     assert income.value == Decimal("1000.00")
 
 
-def test_expense_serializer_create():
-    """
-    Deve criar um registro de despesa (Expense) válido.
-    """
+def test_expense_serializer_create(user):
     category = Category.objects.create(name="Transporte")
     data = {
         "title": "Ônibus",
@@ -68,15 +73,12 @@ def test_expense_serializer_create():
     }
     serializer = ExpenseSerializer(data=data)
     assert serializer.is_valid(), serializer.errors
-    expense = serializer.save()
+    expense = serializer.save(user=user)
     assert expense.title == "Ônibus"
     assert expense.value == Decimal("4.50")
 
 
-def test_debt_serializer_create():
-    """
-    Deve criar um registro de dívida (Debt) válido.
-    """
+def test_debt_serializer_create(user):
     category = Category.objects.create(name="Cartão")
     data = {
         "name": "Fatura Cartão",
@@ -89,16 +91,13 @@ def test_debt_serializer_create():
     }
     serializer = DebtSerializer(data=data)
     assert serializer.is_valid(), serializer.errors
-    debt = serializer.save()
+    debt = serializer.save(user=user)
     assert debt.name == "Fatura Cartão"
     assert debt.value == Decimal("500.00")
     assert not debt.paid
 
 
-def test_objective_serializer_create():
-    """
-    Deve criar um objetivo (Objective) válido.
-    """
+def test_objective_serializer_create(user):
     data = {
         "title": "Viagem",
         "description": "Viagem de férias",
@@ -107,16 +106,14 @@ def test_objective_serializer_create():
     }
     serializer = ObjectiveSerializer(data=data)
     assert serializer.is_valid(), serializer.errors
-    obj = serializer.save()
+    obj = serializer.save(user=user)
     assert obj.title == "Viagem"
     assert obj.target_value == Decimal("3000.00")
 
 
-def test_objective_serializer_to_representation():
-    """
-    Deve serializar um objetivo existente corretamente.
-    """
+def test_objective_serializer_to_representation(user):
     obj = Objective.objects.create(
+        user=user,
         title="Casa",
         description="Comprar casa",
         target_value="100000.00",

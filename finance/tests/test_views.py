@@ -13,7 +13,10 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def api_client():
     user = get_user_model().objects.create_user(
-        username='testuser', password='testpass')
+        username='testuser',
+        email='test@example.com',
+        password='testpass'
+    )
     client = APIClient()
     client.force_authenticate(user=user)
     return client
