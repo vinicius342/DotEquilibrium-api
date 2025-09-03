@@ -2,9 +2,9 @@
 
 # Script para executar migrações do Django
 echo "🔄 Executando makemigrations..."
-python manage.py makemigrations
+python3 manage.py makemigrations
 
 echo "🔄 Executando migrate..."
-python manage.py migrate
+python3 manage.py migrate
 
 echo "✅ Migrações concluídas!"
