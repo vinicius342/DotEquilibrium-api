@@ -3,11 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import (AdvancePayment, Employee, Payroll, PayrollPeriod,
-                     PayrollPeriodItem)
-from .serializers import (AdvancePaymentSerializer, EmployeeSerializer,
-                          PayrollPeriodItemSerializer, PayrollPeriodSerializer,
-                          PayrollSerializer)
+from .models import Employee, PayrollPeriod, PayrollPeriodItem
+from .serializers import (EmployeeSerializer, PayrollPeriodItemSerializer,
+                          PayrollPeriodSerializer)
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
@@ -75,27 +73,3 @@ class PayrollPeriodItemViewSet(viewsets.ModelViewSet):
         if period_id is not None:
             queryset = queryset.filter(period=period_id)
         return queryset
-
-
-class PayrollViewSet(viewsets.ModelViewSet):
-    queryset = Payroll.objects.all()
-    serializer_class = PayrollSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Payroll.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class AdvancePaymentViewSet(viewsets.ModelViewSet):
-    queryset = AdvancePayment.objects.all()
-    serializer_class = AdvancePaymentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return AdvancePayment.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from .models import (AdvancePayment, Employee, Payroll, PayrollPeriod,
-                     PayrollPeriodItem)
+from .models import Employee, PayrollPeriod, PayrollPeriodItem
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -38,23 +37,3 @@ class PayrollPeriodSerializer(serializers.ModelSerializer):
 
     def get_employees_count(self, obj):
         return obj.items.values('employee').distinct().count()
-
-
-class PayrollSerializer(serializers.ModelSerializer):
-    employee_name = serializers.CharField(source='employee.name',
-                                          read_only=True)
-
-    class Meta:
-        model = Payroll
-        fields = '__all__'
-        read_only_fields = ('user',)
-
-
-class AdvancePaymentSerializer(serializers.ModelSerializer):
-    employee_name = serializers.CharField(source='employee.name',
-                                          read_only=True)
-
-    class Meta:
-        model = AdvancePayment
-        fields = '__all__'
-        read_only_fields = ('user',)
