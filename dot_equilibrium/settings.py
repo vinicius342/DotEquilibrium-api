@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'accounts',
     'finance',
     'payroll',
-    'investment',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',

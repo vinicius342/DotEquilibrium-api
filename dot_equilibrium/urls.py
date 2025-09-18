@@ -27,7 +27,6 @@ urlpatterns = [
     # Apps principais
     path('api/finance/', include('finance.urls')),
     path('api/payroll/', include('payroll.urls')),
-    path('api/investment/', include('investment.urls')),
 
     # Admin
     path('admin/', admin.site.urls),

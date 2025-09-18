@@ -3,11 +3,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import (Category, Debt, Expense, Income, Objective, RecurringBill,
-                     RecurringBillPayment)
+from .models import (Category, Debt, Expense, Income, Objective,
+                     ObjectiveDeposit, RecurringBill, RecurringBillPayment)
 from .serializers import (CategorySerializer, DebtSerializer,
                           ExpenseSerializer, IncomeSerializer,
-                          ObjectiveSerializer, RecurringBillPaymentSerializer,
+                          ObjectiveDepositSerializer, ObjectiveSerializer,
+                          RecurringBillPaymentSerializer,
                           RecurringBillSerializer)
 
 
@@ -29,6 +30,95 @@ class ObjectiveViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def add_deposit(self, request, slug=None):
+        """
+        Adiciona um depósito a um objetivo específico
+        """
+        objective = self.get_object()
+        amount = request.data.get('amount')
+        description = request.data.get('description', '')
+
+        if not amount:
+            return Response(
+                {'error': 'Amount is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return Response(
+                    {'error': 'Amount must be positive'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            deposit = objective.add_deposit(amount, description)
+
+            # Retornar o objetivo atualizado
+            serializer = self.get_serializer(objective)
+            return Response({
+                'objective': serializer.data,
+                'deposit': ObjectiveDepositSerializer(deposit).data
+            })
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'Invalid amount format'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=['post'])
+    def withdraw(self, request, slug=None):
+        """
+        Remove um valor de um objetivo específico (saque)
+        """
+        objective = self.get_object()
+        amount = request.data.get('amount')
+        description = request.data.get('description', '')
+
+        if not amount:
+            return Response(
+                {'error': 'Amount is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return Response(
+                    {'error': 'Amount must be positive'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            withdrawal = objective.withdraw(amount, description)
+
+            # Retornar o objetivo atualizado
+            serializer = self.get_serializer(objective)
+            return Response({
+                'objective': serializer.data,
+                'withdrawal': ObjectiveDepositSerializer(withdrawal).data
+            })
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except (TypeError,):
+            return Response(
+                {'error': 'Invalid amount format'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class IncomeViewSet(viewsets.ModelViewSet):

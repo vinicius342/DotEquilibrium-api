@@ -274,6 +274,16 @@ class RecurringBill(models.Model):
 
 
 class Objective(models.Model):
+    CATEGORY_CHOICES = [
+        ('lazer', 'Lazer'),
+        ('transporte', 'Transporte'),
+        ('casa', 'Casa'),
+        ('educacao', 'Educação'),
+        ('emergencia', 'Emergência'),
+        ('investimento', 'Investimento'),
+        ('outros', 'Outros'),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
@@ -283,13 +293,123 @@ class Objective(models.Model):
     current_value = models.DecimalField(
         max_digits=12, decimal_places=2, default=Decimal('0.00'))
     deadline = models.DateField(blank=True, null=True)
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default='outros')
     created_at = models.DateTimeField(auto_now_add=True)
     achieved = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+
+        # Verificar se objetivo foi recém concluído
+        was_achieved = False
+        if self.pk:  # Se já existe no banco
+            try:
+                old_obj = Objective.objects.get(pk=self.pk)
+                was_achieved = old_obj.achieved
+            except Objective.DoesNotExist:
+                pass
+
+        # Auto-atualizar achieved baseado no progresso
+        if self.current_value >= self.target_value:
+            if not self.achieved:  # Se não estava concluído antes
+                from django.utils import timezone
+                self.completed_at = timezone.now()
+            self.achieved = True
+        else:
+            self.achieved = False
+            # Se não está mais concluído, remover data de conclusão
+            if was_achieved:
+                self.completed_at = None
+
         super().save(*args, **kwargs)
+
+    @property
+    def progress_percentage(self):
+        """Retorna o progresso em porcentagem"""
+        if self.target_value <= 0:
+            return 0
+        current = float(self.current_value)
+        target = float(self.target_value)
+        return min((current / target) * 100, 100)
+
+    @property
+    def remaining_amount(self):
+        """Valor restante para atingir a meta"""
+        return max(self.target_value - self.current_value, Decimal('0.00'))
+
+    @property
+    def days_remaining(self):
+        """Dias restantes até o prazo"""
+        if not self.deadline:
+            return None
+        from datetime import date
+        delta = self.deadline - date.today()
+        return delta.days
+
+    @property
+    def status(self):
+        """Status baseado no achieved"""
+        return 'concluido' if self.achieved else 'ativo'
+
+    def add_deposit(self, amount, description=""):
+        """Adiciona um valor ao objetivo"""
+        deposit_amount = Decimal(str(amount))
+
+        # Verificar se o depósito não excede o valor restante para a meta
+        remaining = self.remaining_amount
+        if deposit_amount > remaining and remaining > 0:
+            raise ValueError(
+                f"Valor do depósito (R$ {deposit_amount}) excede o valor "
+                f"restante para atingir a meta (R$ {remaining})"
+            )
+
+        self.current_value += deposit_amount
+        self.save()
+
+        # Criar registro do depósito
+        return ObjectiveDeposit.objects.create(
+            objective=self,
+            amount=deposit_amount,
+            description=description
+        )
+
+    def withdraw(self, amount, description=""):
+        """Remove um valor do objetivo (saque)"""
+        withdrawal_amount = Decimal(str(amount))
+
+        # Verificar se há valor suficiente
+        if withdrawal_amount > self.current_value:
+            raise ValueError(
+                "Valor de saque maior que o valor atual do objetivo"
+            )
+
+        self.current_value -= withdrawal_amount
+        self.save()
+
+        # Criar registro do saque (valor negativo)
+        return ObjectiveDeposit.objects.create(
+            objective=self,
+            amount=-withdrawal_amount,  # Valor negativo para indicar saque
+            description=description or "Saque"
+        )
 
     def __str__(self):
         return f"{self.title} - {self.target_value}"
+
+
+class ObjectiveDeposit(models.Model):
+    """Histórico de depósitos feitos em objetivos"""
+    objective = models.ForeignKey(
+        Objective, on_delete=models.CASCADE, related_name='deposits')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    description = models.TextField(blank=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_added']
+
+    def __str__(self):
+        return f"{self.objective.title} - R$ {self.amount}"
