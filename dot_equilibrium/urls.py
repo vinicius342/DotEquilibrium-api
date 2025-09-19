@@ -25,6 +25,7 @@ urlpatterns = [
     path('api-token-auth/', views.obtain_auth_token),
 
     # Apps principais
+    path('api/accounts/', include('accounts.urls')),
     path('api/finance/', include('finance.urls')),
     path('api/payroll/', include('payroll.urls')),
 
